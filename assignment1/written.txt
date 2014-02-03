@@ -1,0 +1,229 @@
+Patrick Taylor
+pat2138
+COMS 4180
+Assignment 1: Written Problems
+
+1. (10 points)
+
+a. If a password to a cipher is exactly 8 characters long, and each character can be selected from [0-9], [a-z], and [A-Z], how many different passwords are possible?
+
+[0-9]: 10 characters
+[a-z]: 26 characters
+[A-Z]: 26 characters
+
+56 total possible characters => 56^8 = 96717311574016 different passwords
+
+b. Suppose a system requires passwords be 8 characters long, include at least one capital letter, at least one digit and at least one character from the set of 5 special characters { !,#,%,&,*} . What advantage does this provide an attacker who is trying to guess a password?
+
+The inclusion of 5 special characters increases the total possible characters to 61, but by restricting 3 out of the 8 character-long password results in a total of (26)(5)(10)(61)(61)(61)(61)(61) = 1097975191300 different passwords, where without this restriction there would be 61^8 = 191707312997281 total passwords, resulting in reducing the number of passwords the attacker would have to brute-force by [26*5*10]/[61*61*61] = 0.005727 ~ 0.005 = 1/200 and reducing the total time required to guess by 1/200ths.
+
+2. (10 points, 5 points for each part)
+Suppose AES (or any block cipher) is used to encrypt data. Which mode of encryption covered in class is best suited for each of the following two scenarios and why? If more than one mode is suitable, pick one and explain why.
+
+a. Streaming video between a server and client.
+
+ECB mode is best suited for streaming videos as each block is encrypted
+individually, and the unstructured nature of on-the-fly data transfer means
+that patterns are not likely.
+
+b. Disk encryption on a backup server storing system log files where the files are individually encrypted with one key used across all files. In addition, answer the following: Consider the first block of each encrypted file and the fact that the same key was used, what is the implication of this?
+
+The use of log files indicates that ECB should not be used (since patterns
+will emerge); the individual encryption of each block signifies that CFB
+, CTR or OFB should not be used; this leaves CBC as our mode of choice for
+this disk encryption, since a key is required and each plaintext block is
+input into the cipher. 
+
+Since the same keysc is used, if the attacker gets access to this key as well as
+the cipher text, the attacker would only need to recreate the correct
+initialization vector in order to decrypt the ciphertext.
+
+3. (10 points)
+Use bc, an arbitrary precision calculator, to compute a shared key using Diffie-Hellman key exchange. (Pretend you are both Alice and Bob.) Use p = 2^61 -1 and g = 23489. Alice and Bob's secret numbers are SA = 93573 and SB = 23903. 
+Use the script command to show each step.
+bc is on the clic machines in /usr/bin/bc 
+Use "man bc" and "bc -h" for assistance.
+
+The Diffie-Hellman key exchange will operate as follows:
+p = 2^61 - 1
+g = 23489
+a = 93573
+b = 23903
+
+A = g^a mod p
+B = g^b mod p
+s = B^a mod p = A^b mod p
+
+===================
+
+Output:
+
+p = 2^61 - 1
+g = 23489
+a = 93573
+b = 23903
+scale = 0; g^a % p
+37624232676394539
+scale = 0; g^b % p
+870708523737507398
+scale = 0; 37624232676394539 ^ b % p
+1937403677556270047
+scale = 0; 870708523737507398 ^ a % p
+1937403677556270047
+
+See dh.txt for the script output (including escape characters)
+
+
+4. (40 points, 30 for part a and 10 for part b)
+Pick one of HC-128, Rabbit or Sosemanuk from the software based stream ciphers selected by the estream competition http://www.ecrypt.eu.org/stream/ . Use the links for the ciphers under profile 1 from this site and not the older estream project site which contains earlier versions of the algorithms. (Salsa 20/12 is not included as a choice because the code posted for it on the site does not include test vectors.) After clicking on an algorithm under profile 1, the page that appears will include links to an article describing the cipher and C source code (zip file) as the first two items under "Links". Use the C source code and test vectors in the zip file for part b. You may modify any header files or include statements needed to get the program to run. You may run the program on any machine, i.e. you do not need to use the clic machines. If you don't know C and need help compiling the code, you may ask the TAs for help but you should get the code to run and not ask the TAs to just install it for you.
+
+a. Explain how the cipher works, including each step of the algorithm. The explanation may include diagrams. The explanation should not be an identical copy of the algorithm descriptions found in the article posted on the estream website. Your summary should indicate you understand the algorithm.
+
+=========================
+0. Cipher Inputs/Outputs
+
+Input:
+128-bit secret key
+64-bit IV (optional)
+
+Output:
+128 psuedo-random bits output block
+
+Encrypt/Decrypt: XOR'd psuedorandom bits w/ plaintext/cyphertext
+
+Internal State:
+513 bits
+	(x) 8 32-bit state variables -- updated with 8 coupled non-linear functions
+	(c) 8 32-bit counters
+	1 counter carry bit
+	
+Purpose: 
+	faster than commonly used cyphers
+	justifies key size of 128 bit for up to 2^64 block plaintext encryption
+		should not be possible to distinguish up to 2^64 blocks of cipher output 
+		with a random generator rather than exhaustive key search of 2^128 keys
+		
+1. Key Setup
+
+Take 128-bit key
+Break up key into eight subkeys (k0 = K[15:0], k1 = K[31:16], ... , k7 = K[127:112])
+State variables(x) and counters (c) initialized with concatenation (+ means concatenation, not addition):
+	
+	x(j,0) = {	k(j+1 mod 8) + kj,		j even
+			k(j+5 mod 8) + k(j+4 mod 8),	j odd	}
+	c(j,0) = {	k(j+4 mod 8) k(j+5 mod 8),	j even
+			kj k(j+1 mod 8)		j odd	}
+				
+Four iterations are performed on state variables and counters to eliminate dependence on keys
+	States are iterated according to next-state function
+	Counters are iterated according to counter system
+
+After four iterations, counter variables are reinitialized as follows:
+	
+	c(j,4) = c(j,4) XOR x[(j+4 mod 8),4]
+
+The goal of the key expansion is to prevent key redundancy by matching up
+the key, the state, and the counter using an optimized key distribution. The
+goal of the iteration is to influence all eight state variables by each key
+bit with a measured probability of 0.5 after two iterations. The goal of the
+counter modification is to make key recovery more difficult, even if counters
+are known by the attacker, by requiring additional knowledge of the state
+variables.
+
+
+2. IV Setup
+
+Take 64-bit IV
+XOR select bits with counter bits to modify counter state as a function of IV
+
+	c(0,4) = c(0,4) XOR IV[31:0]
+	c(1,4) = c(1,4) XOR (IV[63:48] + IV[31:16])
+	c(2,4) = c(2,4) XOR IV[63:32]
+	c(3,4) = c(3,4) XOR (IV[47:32] + IV[15:0])
+	c(4,4) = c(4,4) XOR IV[31:0]
+	c(5,4) = c(5,4) XOR (IV[63:48] + IV[31:16])
+	c(6,4) = c(6,4) XOR IV[63:32]
+	c(7,4) = c(7,4) XOR (IV[47:32] + IV[15:0])
+	
+System is then iterated 4 times to eliminate dependence on IV. 
+The goal of the IV addition is to produce a unique keystring for each of the
+2^64 possible IV values, and the iteration guarantees the influence of each IV
+bit on the eight state variables.
+
+
+3. Next-state Function
+
+Iteration performed as follows: [	<< denotes bitwise shift left, 
+					>> denotes bitwise shift right, 
+					+ denotes addition modulo 2^32	]
+
+	x(0,i+1) = g(0,i) + [g(7,i) << 16] + [g(6,i) << 16]
+	x(1,i+1) = g(1,i) + [g(0,i) << 8] + g(7,i)
+	x(2,i+1) = g(2,i) + [g(1,i) << 16] + [g(0,i) << 16]
+	x(3,i+1) = g(3,i) + [g(2,i) << 8] + g(1,i)
+	x(4,i+1) = g(4,i) + [g(3,i) << 16] + [g(2,i) << 16]
+	x(5,i+1) = g(5,i) + [g(4,i) << 8] + g(3,i)
+	x(6,i+1) = g(6,i) + [g(5,i) << 16] + [g(4,i) << 16]
+	x(7,i+1) = g(7,i) + [g(6,i) << 8] + g(5,i)
+	
+where
+	
+	g(j,i) = ([x(j,i) + c(j,i+1)]^2 XOR [(x(j,i) + c(j,i+1))^2 >> 32])
+
+
+4. Counter System
+
+Iteration performed as follows:
+
+	c(0,i+1) = c(0,i) + a0 + p(7,i) mod 2^32
+	c(1,i+1) = c(1,i) + a1 + p(0,i+1) mod 2^32
+	c(2,i+1) = c(2,i) + a2 + p(1,i+1) mod 2^32
+	c(3,i+1) = c(3,i) + a3 + p(2,i+1) mod 2^32
+	c(4,i+1) = c(4,i) + a4 + p(3,i+1) mod 2^32
+	c(5,i+1) = c(5,i) + a5 + p(4,i+1) mod 2^32
+	c(6,i+1) = c(6,i) + a6 + p(5,i+1) mod 2^32
+	c(7,i+1) = c(7,i) + a7 + p(6,i+1) mod 2^32
+	
+where p(j,i+1) is as follows:
+
+	p(j,i+1) = {	1	if c(0,i) + a0 + p(7,i) >= 2^32 AND j = 0
+			1	if c(j,i) + aj + p(j-1,i+1) >= 2^32 AND j > 0
+			0	otherwise					}
+
+and aj is defined as:
+
+	a0 = 0x4D34D34D
+	a1 = 0xD34D34D3
+	a2 = 0x34D34D34
+	a3 = 0x4D34D34D
+	a4 = 0xD34D34D3
+	a5 = 0x34D34D34
+	a6 = 0x4D34D34D
+	a7 = 0xD34D34D3
+
+5. Extraction
+
+The extracted output for each iteration is as follows:
+
+	s(i)[15:0] 	= x(0,i)[15:0] 	XOR x(5,i)[31:16]
+	s(i)[31:16]	= x(0,i)[31:16]	XOR x(3,i)[15:0]
+	s(i)[47:32]	= x(2,i)[15:0] 	XOR x(7,i)[31:16]
+	s(i)[63:48]	= x(2,i)[31:16]	XOR x(5,i)[15:0]
+	s(i)[79:64]	= x(4,i)[15:0]	XOR x(1,i)[31:16]
+	s(i)[95:80]	= x(4,i)[31:16] XOR x(7,i)[15:0]
+	s(i)[111:96]	= x(6,i)[15:0]	XOR x(3,i)[31:16]
+	s(i)[127:112]	= x(6,i)[31:16]	XOR x(1,i)[15:0]
+	
+where s(i) is the 128-bit keystream to be XOR'd with text
+
+6. Encryption/Decryption
+
+The extracted bits are then XOR'd with plaintext/ciphertext to encrypt/decrypt:
+
+	c(i) = p(i) XOR s(i)
+	p(i) = c(i) XOR s(i)
+
+=========================
+ 
+b. Download the C source code for the cipher and run the cipher using the first two test vectors from the test vector file included with the source code. Also run the cipher with a test vector of all 1's (i.e. the key is all
+1's and if an IV must be input, the IV is also all 1's). Copy the line used to execute the program with each test vector and the resulting output into a file to show that you ran the program on the test vectors and obtained the correct output. (Note: the cipher may show intermediate state in its output as part of the test. Include the entire output in your submission.) Do not submit the source code.

@@ -1,0 +1,7 @@
+This folder will contain all entries for Homework 0, an ungrades test of knowledge on socketing: set up a simple server/client scenario. In this scenario, server and clients exchange simple messages using sockets.
+
+In my implementation, this will involve first setting up a server to listen to connections at an unspecified port. This will be done in a way to allow the user who wants to connect to the server at any port they specify (excluding 0-1024). Once a connection is established, the server waits for input from the user, and responds with an acknowledgment that that message was received (with the accompanying message).
+
+This will likely involve multithreading, with a parent thread for listening and child threads for replying to each client in the order messages were received (requiring a queue).
+
+Once the server is initialized, it waits a specified amount of time before timing out and closing the socket without receiving a connection (~30 minutes). Once the client makes a connection, it waits a specified amount of time before timing out and closing its socket without receiving user input (~5 minutes).

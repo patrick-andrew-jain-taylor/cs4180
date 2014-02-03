@@ -1,0 +1,25 @@
+Script started on Sat Feb  1 13:51:24 2014
+]0;pat2138@prague: ~/cs4180pat2138@prague:~/cs4180$ bc
+bc 1.06.95
+Copyright 1991-1994, 1997, 1998, 2000, 2004, 2006 Free Software Foundation, Inc.
+This is free software with ABSOLUTELY NO WARRANTY.
+For details type `warranty'. 
+p = 2^61 - 1
+g = 23489
+a = 93573
+b = 23903
+scale = 0; g% ^a % p
+37624232676394539
+scale = 0; g^b % p
+870708523737507398
+scale = 0; 37624232676394539 ^ a % p      b  b 5 p   % p
+1937403677556270047
+scale = 0; 870708523737507398 ^ a % p
+1937403677556270047
+quit
+]0;pat2138@prague: ~/cs4180pat2138@prague:~/cs4180$ e logout
+bash: logout: not login shell: use `exit'
+]0;pat2138@prague: ~/cs4180pat2138@prague:~/cs4180$ exit
+exit
+
+Script done on Sat Feb  1 13:54:41 2014
