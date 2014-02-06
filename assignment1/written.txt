@@ -224,6 +224,3 @@ The extracted bits are then XOR'd with plaintext/ciphertext to encrypt/decrypt:
 	p(i) = c(i) XOR s(i)
 
 =========================
- 
-b. Download the C source code for the cipher and run the cipher using the first two test vectors from the test vector file included with the source code. Also run the cipher with a test vector of all 1's (i.e. the key is all
-1's and if an IV must be input, the IV is also all 1's). Copy the line used to execute the program with each test vector and the resulting output into a file to show that you ran the program on the test vectors and obtained the correct output. (Note: the cipher may show intermediate state in its output as part of the test. Include the entire output in your submission.) Do not submit the source code.
