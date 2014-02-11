@@ -6,6 +6,7 @@ public static void main(String[] args){
  *		<file containing client2's RSA public exponent and modulus> 
  *		<file name>*/
 
+	//Check for invalid/garbage/missing input
 	//Encrypt file with AES in CBC
 	//Hash plaintext with SHA-256
 	//Encrypt hash with RSA (private key)

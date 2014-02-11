@@ -6,6 +6,7 @@ public static void main(String[] args){
  *		<file containing client2's RSA public exponent and modulus> 
  *		*/
 
+	//Check for invalid/garbage/missing input
 	//Receive encrypted file and signature from server
 	//Decrypt file and Verify Signature
 	//Write result to stdout
