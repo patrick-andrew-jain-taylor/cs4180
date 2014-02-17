@@ -46,32 +46,31 @@ public class client1{
 		String password = args[2];
 
 		//< file containing client1.s RSA public exponent and modulus>
-		try{//make sure the client1's RSA file exists
-			File RSA1 = new File(args[3]);
-			RSA1.getCanonicalPath();
-		}catch (IOException e){
+		//make sure the client1's RSA file exists
+		File RSA1 = new File(args[3]);
+		if (!RSA1.exists()){
 			System.out.println("Input: <server ip address> <port number client1> <client1 password> < file containing client1.s RSA private exponent and modulus> <file containing client2.s RSA public exponent and modulus> <file name>");
 			System.out.println("args[3]: Input a valid file containing client1's private RSA exponent and modulus.");
 			System.exit(0);
 		}
 
 		//<file containing client2.s RSA public exponent and modulus>
-		try{//make sure the client2's RSA file exists
-			File RSA2 = new File(args[4]);
-			RSA2.getCanonicalPath();
-		}catch (IOException e){
+		//make sure the client2's RSA file exists
+		File RSA2 = new File(args[4]);
+		if (!RSA2.exists()){
 			System.out.println("Input: <server ip address> <port number client1> <client1 password> < file containing client1.s RSA private exponent and modulus> <file containing client2.s RSA public exponent and modulus> <file name>");
 			System.out.println("args[4]: Input a valid file containing client2's public RSA exponent and modulus.");
 			System.exit(0);
 		}
 		
 		//<file name>
-		try{//make sure the file to be encrypted exists
-			File Data = new File(args[5]);
-			Data.getCanonicalPath();
-		}catch (IOException e){
+		//make sure the file to be encrypted exists
+		File Data = new File(args[5]);
+		if(!Data.exists()){
 			System.out.println("Input: <server ip address> <port number client1> <client1 password> < file containing client1.s RSA private exponent and modulus> <file containing client2.s RSA public exponent and modulus> <file name>");
 			System.out.println("args[5]: Input a valid file to be encrypted.");
+			System.exit(0);
+		}
 		//Encrypt file with AES in CBC
 		//Hash plaintext with SHA-256
 		//Encrypt hash with RSA (private key)
@@ -79,7 +78,6 @@ public class client1{
 		//Encrypt password with client2 RSA key
 		//Send encrypted password to client 2 via server
 		//Disconnect from server after sending password, file, and signature
-		}
 	}
 }
 
