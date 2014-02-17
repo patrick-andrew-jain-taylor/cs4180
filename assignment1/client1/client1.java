@@ -2,40 +2,7 @@ import java.io.*;
 import java.lang.*;
 	
 public class client1{
-	public static void main(String[] args){
-	/*	Input: 	<server ip address> <port number client1> <client1 password>
-	 *		<file containing client1's RSA private exponent and modulus>
-	 *		<file containing client2's RSA public exponent and modulus> 
-	 *		<file name> -- 6 inputs*/
-
-		//Check for invalid/garbage/missing input
-		inputtest.length(args);//checks for insufficient input size
-		//<server ip address>
-		String serverIP = inputtest.serverIpTest(args[0]); //checks for an valid server IP
-		//<port number client1>
-		int serverPort = inputtest.portTest(args[1]);//checks for a valid integer for client 1 port number
-		//<client1 password>
-		String password = inputtest.passwordTest(args[2]); //checks for a valid, 16 character password
-		//< file containing client1.s RSA public exponent and modulus>
-		//make sure the client1's RSA file exists
-		File RSA1 = inputtest.fileTest(args[3], "<file containing client1.s RSA public exponent and modulus>");
-		//<file containing client2.s RSA public exponent and modulus>
-		//make sure the client2's RSA file exists
-		File RSA2 = inputtest.fileTest(args[4], "<file containing client2.s RSA public exponent and modulus>");
-		//<file name>
-		//make sure the file to be encrypted exists
-		File Data = inputtest.fileTest(args[5], "<file name>");
-		//Encrypt file with AES in CBC
-		//Hash plaintext with SHA-256
-		//Encrypt hash with RSA (private key)
-		//Send Encrypted data and signature to the server
-		//Encrypt password with client2 RSA key
-		//Send encrypted password to client 2 via server
-		//Disconnect from server after sending password, file, and signature
-	}
-}
-private class inputtest{
-	private void length(String[] args){//checks for insufficient input size
+	private void argLength(String[] args){//checks for insufficient input size
 		if (args.length != 6){ 
 			System.out.println("Input: <server ip address> <port number client1> <client1 password> < file containing client1's RSA	private exponent and modulus> <file containing client2's RSA public exponent and modulus> <file	name>");
 			System.out.println("client1 requires 6 input parameters.");
@@ -83,5 +50,38 @@ private class inputtest{
 		}
 		return file;
 	}
+	public static void main(String[] args){
+	/*	Input: 	<server ip address> <port number client1> <client1 password>
+	 *		<file containing client1's RSA private exponent and modulus>
+	 *		<file containing client2's RSA public exponent and modulus> 
+	 *		<file name> -- 6 inputs*/
+
+		//Check for invalid/garbage/missing input
+		argLength(args);//checks for insufficient input size
+		//<server ip address>
+		String serverIP = serverIpTest(args[0]); //checks for an valid server IP
+		//<port number client1>
+		int serverPort = portTest(args[1]);//checks for a valid integer for client 1 port number
+		//<client1 password>
+		String password = passwordTest(args[2]); //checks for a valid, 16 character password
+		//< file containing client1.s RSA public exponent and modulus>
+		//make sure the client1's RSA file exists
+		File RSA1 = fileTest(args[3], "<file containing client1.s RSA public exponent and modulus>");
+		//<file containing client2.s RSA public exponent and modulus>
+		//make sure the client2's RSA file exists
+		File RSA2 = fileTest(args[4], "<file containing client2.s RSA public exponent and modulus>");
+		//<file name>
+		//make sure the file to be encrypted exists
+		File Data = fileTest(args[5], "<file name>");
+		//Encrypt file with AES in CBC
+		//Hash plaintext with SHA-256
+		//Encrypt hash with RSA (private key)
+		//Send Encrypted data and signature to the server
+		//Encrypt password with client2 RSA key
+		//Send encrypted password to client 2 via server
+		//Disconnect from server after sending password, file, and signature
+	}
+}
+
 }
 
