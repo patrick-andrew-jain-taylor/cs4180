@@ -72,7 +72,7 @@ gcd.o: gcd.c gcd.h
 
 .PHONY: clean
 clean:
-	rm -f *.o *~ a.out core main
+	rm -f *.o *~ *.class a.out core main
 
 # "all" target is useful if your Makefile builds multiple programs.
 # Here we.ll have it first do "clean", and rebuild the main target.
