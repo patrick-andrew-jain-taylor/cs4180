@@ -1,5 +1,10 @@
 import java.io.*;
 import java.lang.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
+import java.net.*;
+import java.security.*;
+import java.security.spec.*;
 	
 public class client1{
 	private static void argLength(String[] args){//checks for insufficient input size
@@ -51,7 +56,8 @@ public class client1{
 		}
 		return file;
 	}
-	public static void main(String[] args){
+	public static void main(String[] args) 
+		throws SignatureException, IOException, IllegalBlockSizeException, BadPaddingException{
 	/*	Input: 	<server ip address> <port number client1> <client1 password>
 	 *		<file containing client1's RSA private exponent and modulus>
 	 *		<file containing client2's RSA public exponent and modulus> 
@@ -75,19 +81,68 @@ public class client1{
 		//make sure the file to be encrypted exists
 		File Data = fileTest(args[5], "<file name>");
 		//Encrypt file with AES in CBC
-		Cipher aesCBC = Cipher.getInstance("AES/CBC/NoPadding"); //instantiate AES with CBC
-		aesCBC.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(password.getBytes("UTF-8"), "AES"), new IvParameterSpec(new byte[16])); //initialize
-		FileInputStream is = new FileInputStream(Data); //to be used for plaintext hashing
+		Cipher aesCBC = null;
+		try{
+			aesCBC = Cipher.getInstance("AES/CBC/NoPadding"); //instantiate AES with CBC
+			aesCBC.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(password.getBytes("UTF-8"), "AES"), new IvParameterSpec(new byte[16])); //initialize
+		} catch(NoSuchAlgorithmException e){
+			System.out.println("Please include a valid cipher.");
+			System.exit(0);
+		} catch(NoSuchPaddingException e){
+			System.out.println("Please include a valid padding.");
+			System.exit(0);
+		} catch(UnsupportedEncodingException e){
+			System.out.println("Please include a valid encoding.");
+			System.exit(0);
+		} catch(InvalidKeyException e){
+			System.out.println("Please insert a valid key.");
+			System.exit(0);
+		} catch(InvalidAlgorithmParameterException e){
+			System.out.println("Please include a valid algorithm parameter.");
+			System.exit(0);
+		}
+		FileInputStream is = null;
+		try{	
+			is = new FileInputStream(Data); //to be used for plaintext hashing
+		} catch(FileNotFoundException e){
+			System.out.println("Please include a valid file.");
+			System.exit(0);
+		}
 		CipherInputStream cis = new CipherInputStream(is, aesCBC); //encrypt data from file
-		BufferInputStream bis = new BufferInputStream(cis); //buffered for use in socket transmission
+		byte[] dataArrayAES = new byte[(int) Data.length()]; //the encrypted version of the file
+		BufferedInputStream bis = new BufferedInputStream(cis); //buffered for use in socket transmission
 		//Hash plaintext with SHA-256 & encrypt hash with RSA (private key)
-		Signature SHA256 = Signature.getInstance("SHA256withRSA"); //instantiate SHA-256 with RSA
+		Signature SHA256 = null;
+		try{
+			SHA256 = Signature.getInstance("SHA256withRSA"); //instantiate SHA-256 with RSA
+		} catch(NoSuchAlgorithmException e){
+			System.out.println("Please include a valid algorithm.");
+			System.exit(0);
+		}
 		byte[] encodedKeyPriv = new byte[(int)RSA1.length()]; //the encoded version of the private key will be read into this array
-		new FileInputStream(RSA1).read(encodedKeyPriv); //the key contained in this file is read to the array
+		try{
+			new FileInputStream(RSA1).read(encodedKeyPriv); //the key contained in this file is read to the array
+		} catch(FileNotFoundException e){
+			System.out.println("Please include a valid file.");
+			System.exit(0);
+		}
 		PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedKeyPriv); //create a private key specification from the encoded key
-		KeyFactory kf = KeyFactory.getInstance("RSA"); //instatiate RSA for private key
-		PrivateKey pk = kf.generatePrivate(privateKeySpec); //generate the private key
-		SHA256.initSign(pk); //initialize the signature process
+		KeyFactory kf = null;
+		PrivateKey pk = null;
+		try{
+			kf = KeyFactory.getInstance("RSA"); //instatiate RSA for private key
+			pk = kf.generatePrivate(privateKeySpec); //generate the private key
+			SHA256.initSign(pk); //initialize the signature process
+		} catch(NoSuchAlgorithmException e){
+			System.out.println("Please include a valid algorithm.");
+			System.exit(0);
+		} catch(InvalidKeySpecException e){
+			System.out.println("Please include a valid key specification.");
+			System.exit(0);
+		} catch(InvalidKeyException e){
+			System.out.println("Please include a valid key.");
+			System.exit(0);
+		}
 		byte[] dataArrayPlain = new byte[(int) Data.length()]; //array for plaintext to be written to
 		is.read(dataArrayPlain, 0, dataArrayPlain.length); //read in plaintext
 		SHA256.update(dataArrayPlain); //update the signature with the plaintext
@@ -96,10 +151,27 @@ public class client1{
 		byte[] encodedKeyPub = new byte[(int)RSA2.length()];//the encoded version of the public key will be read into this array
 		new FileInputStream(RSA2).read(encodedKeyPub); //the key contained in this file is read to the array
 		X509EncodedKeySpec publicKeySpec =  new X509EncodedKeySpec(encodedKeyPub); //create a public key specification from the encoded key
-		KeyFactory kf2 = Keyfactory.getInstance("RSA"); //instantiate RSA for public key
-		PublicKey pk2 = kf2.generatePublic(publicKeySpec); //generate the public key
-		Cipher RSA = Cipher.getInstance("RSA"); //instantiate RSA
-		RSA.init(Cipher.ENCRYPT_MODE, pk2); //initialize RSA encryption
+		KeyFactory kf2 = null;
+		PublicKey pk2 = null;
+		Cipher RSA = null;
+		try{
+			kf2 = KeyFactory.getInstance("RSA"); //instantiate RSA for public key
+			pk2 = kf2.generatePublic(publicKeySpec); //generate the public key
+			RSA = Cipher.getInstance("RSA"); //instantiate RSA
+			RSA.init(Cipher.ENCRYPT_MODE, pk2); //initialize RSA encryption
+		} catch(NoSuchAlgorithmException e){
+			System.out.println("Please include a valid algorithm.");
+			System.exit(0);
+		} catch(InvalidKeySpecException e){
+			System.out.println("Please include a valid key specification.");
+			System.exit(0);
+		} catch(InvalidKeyException e){
+			System.out.println("Please include a valid key.");
+			System.exit(0);
+		} catch(NoSuchPaddingException e){
+			System.out.println("Please include a valid padding.");
+			System.exit(0);
+		}
 		byte[] passEncr = RSA.doFinal(password.getBytes()); //encrypt the password
 		//Send Encrypted data, signature, and password to the server
 		try{
@@ -124,7 +196,7 @@ public class client1{
 		}
 		bis.close();
 		cis.close();
-		fis.close();
+		is.close();
 		//Encrypt password with client2 RSA key
 		//Send encrypted password to client 2 via server
 		//Disconnect from server after sending password, file, and signature
