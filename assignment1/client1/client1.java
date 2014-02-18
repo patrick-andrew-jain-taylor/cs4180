@@ -11,14 +11,14 @@ public class client1{
 		if (args.length != 6){ 
 			System.out.println("Input: <server ip address> <port number client1> <client1 password> < file containing client1's RSA	private exponent and modulus> <file containing client2's RSA public exponent and modulus> <file	name>");
 			System.out.println("client1 requires 6 input parameters.");
-			System.exit(0);
+			System.exit(-1);
 		}
 	}
 	private static String serverIpTest(String ipAddress){//checks for an valid server IP
 		if (ipAddress.matches("^.[0-9]{1,3}\\..[0-9]{1,3}\\..[0-9]{1,3}\\..[0-9]{1,3}") != true){
 			System.out.println("Input: <server ip address> <port number client1> <client1 password> < file containing client1's RSA private exponent and modulus> <file containing client2's RSA public exponent and modulus> <file name>");
 			System.out.println("<server ip address>: Please input a valid IPv4 server address ([0-255].[0-255].[0-255].[0-255]).");
-			System.exit(0);
+			System.exit(-1);
 		}
 		return ipAddress;
 	}
@@ -29,7 +29,7 @@ public class client1{
 		} catch (NumberFormatException e){
 			System.out.println("Input: <server ip address> <port number client1> <client1 password> < file containing client1's RSA private exponent and modulus> <file containing client2's RSA public exponent and modulus> <file name>");
 			System.out.println("<port number client1>: Please input a valid integer.");
-			System.exit(0);
+			System.exit(-1);
 		}
 		return 0;
 	}
@@ -37,13 +37,13 @@ public class client1{
 		if (password.length() != 16){//checks for a 16 character password
 			System.out.println("Input: <server ip address> <port number client1> <client1 password> < file containing client1's RSA private exponent and modulus> <file containing client2's RSA public exponent and modulus> <file name>");
 			System.out.println("<client1 password>: Please input a password of exactly 16 characters.");
-			System.exit(0);
+			System.exit(-1);
 		}
 		if (password.matches("^[a-zA-Z0-9,./<>?;:.\"[]{}\\|!@#$%.&*()-_=+]*]$")){ // checks for valid characters
 			System.out.println("Input: <server ip address> <port number client1> <client1 password> < file containing client1's RSA private exponent and modulus> <file containing client2's RSA public exponent and modulus> <file name>");
 			System.out.println("<client1 password>: Please only use alphanumeric characters as well as the following symbols:");
 			System.out.println(" , . / < > ? ; : . \" [ ] { } \\ | ! @ # $ % . & * ( ) - _ = +");
-			System.exit(0);
+			System.exit(-1);
 		}
 		return password;
 	}
@@ -52,7 +52,7 @@ public class client1{
 		if (!file.exists()){
 			System.out.println("Input: <server ip address> <port number client1> <client1 password> < file containing client1.s RSA private exponent and modulus> <file containing client2.s RSA public exponent and modulus> <file name>");
 			System.out.println(input + ": Input a valid file");
-			System.exit(0);
+			System.exit(-1);
 		}
 		return file;
 	}
@@ -87,26 +87,26 @@ public class client1{
 			aesCBC.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(password.getBytes("UTF-8"), "AES"), new IvParameterSpec(new byte[16])); //initialize
 		} catch(NoSuchAlgorithmException e){
 			System.out.println("Please include a valid cipher.");
-			System.exit(0);
+			System.exit(-1);
 		} catch(NoSuchPaddingException e){
 			System.out.println("Please include a valid padding.");
-			System.exit(0);
+			System.exit(-1);
 		} catch(UnsupportedEncodingException e){
 			System.out.println("Please include a valid encoding.");
-			System.exit(0);
+			System.exit(-1);
 		} catch(InvalidKeyException e){
 			System.out.println("Please insert a valid key.");
-			System.exit(0);
+			System.exit(-1);
 		} catch(InvalidAlgorithmParameterException e){
 			System.out.println("Please include a valid algorithm parameter.");
-			System.exit(0);
+			System.exit(-1);
 		}
 		FileInputStream is = null;
 		try{	
 			is = new FileInputStream(Data); //to be used for plaintext hashing
 		} catch(FileNotFoundException e){
 			System.out.println("Please include a valid file.");
-			System.exit(0);
+			System.exit(-1);
 		}
 		CipherInputStream cis = new CipherInputStream(is, aesCBC); //encrypt data from file
 		byte[] dataArrayAES = new byte[(int) Data.length()]; //the encrypted version of the file
@@ -117,14 +117,14 @@ public class client1{
 			SHA256 = Signature.getInstance("SHA256withRSA"); //instantiate SHA-256 with RSA
 		} catch(NoSuchAlgorithmException e){
 			System.out.println("Please include a valid algorithm.");
-			System.exit(0);
+			System.exit(-1);
 		}
 		byte[] encodedKeyPriv = new byte[(int)RSA1.length()]; //the encoded version of the private key will be read into this array
 		try{
 			new FileInputStream(RSA1).read(encodedKeyPriv); //the key contained in this file is read to the array
 		} catch(FileNotFoundException e){
 			System.out.println("Please include a valid file.");
-			System.exit(0);
+			System.exit(-1);
 		}
 		PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedKeyPriv); //create a private key specification from the encoded key
 		KeyFactory kf = null;
@@ -135,13 +135,13 @@ public class client1{
 			SHA256.initSign(pk); //initialize the signature process
 		} catch(NoSuchAlgorithmException e){
 			System.out.println("Please include a valid algorithm.");
-			System.exit(0);
+			System.exit(-1);
 		} catch(InvalidKeySpecException e){
 			System.out.println("Please include a valid key specification.");
-			System.exit(0);
+			System.exit(-1);
 		} catch(InvalidKeyException e){
 			System.out.println("Please include a valid key.");
-			System.exit(0);
+			System.exit(-1);
 		}
 		byte[] dataArrayPlain = new byte[(int) Data.length()]; //array for plaintext to be written to
 		is.read(dataArrayPlain, 0, dataArrayPlain.length); //read in plaintext
@@ -161,16 +161,16 @@ public class client1{
 			RSA.init(Cipher.ENCRYPT_MODE, pk2); //initialize RSA encryption
 		} catch(NoSuchAlgorithmException e){
 			System.out.println("Please include a valid algorithm.");
-			System.exit(0);
+			System.exit(-1);
 		} catch(InvalidKeySpecException e){
 			System.out.println("Please include a valid key specification.");
-			System.exit(0);
+			System.exit(-1);
 		} catch(InvalidKeyException e){
 			System.out.println("Please include a valid key.");
-			System.exit(0);
+			System.exit(-1);
 		} catch(NoSuchPaddingException e){
 			System.out.println("Please include a valid padding.");
-			System.exit(0);
+			System.exit(-1);
 		}
 		byte[] passEncr = RSA.doFinal(password.getBytes()); //encrypt the password
 		//Send Encrypted data, signature, and password to the server
@@ -192,7 +192,7 @@ public class client1{
 		} catch (IOException e){
 			System.out.println("Input: <server ip address> <port number client1> <client1 password> < file containing client1's RSA private exponent and modulus> <file containing client2's RSA public exponent and modulus> <file name>");
 			System.out.println("<server ip address>: Input a valid server address.");
-			System.exit(0);
+			System.exit(-1);
 		}
 		bis.close();
 		cis.close();
