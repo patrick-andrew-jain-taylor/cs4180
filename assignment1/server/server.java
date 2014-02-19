@@ -34,6 +34,13 @@ public class server{
 		int client1Port = portTest(args[0], "<port number for client1>"); //checks for valid client1 port
 		int client2Port = portTest(args[1], "<port number for client2>"); 
 		String mode = modeTest(args[2]);
+		//Establish a socket
+		ServerSocket Socket1 = new ServerSocket(client1port); //establish socket for client1
+		ServerSocket Socket2 = new ServerSocket(client2port); //establish socket for client2
+		Socket client1Socket = serverSocket.accept(); //accept client1 connection
+		BufferedReader in = new BufferedReader(new InputStreamReader(client1Socket.getInputStream())); //determine client1's socket's input stream (receiving information from client1)
+		Socket client2Socket = serverSocket.accept();
+		BufferedReader out = new BufferedReader(new OutputStreamReader(client2Socket.getOutputStream())); //determine client2's socket's output stream (sending information to client2
 		//Pass password from client 1 to client 2
 		//If trusted mode
 		//	send file unmodified and signature received from client 1 to 2
