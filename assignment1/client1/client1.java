@@ -180,11 +180,14 @@ public class client1{
 			int count;
 			while ((count = bis.read(dataArrayAES)) > 0){//read in buffered ciphertext
 				out.write(dataArrayAES, 0, count); //write encrypted file to output buffer
+				System.out.println(count);
 			}
 			out.flush(); //clear the buffer in preparation for signature
 			out.write(dataArraySign, 0, dataArraySign.length);//write signature to server
+			System.out.println(dataArraySign.length);
 			out.flush();
 			out.write(passEncr, 0, passEncr.length);//write encrypted password to server
+			System.out.println(passEncr.length);
 			out.flush();
 			out.close();
 			socket.close();
