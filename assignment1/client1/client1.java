@@ -102,18 +102,22 @@ public class client1{
 			System.out.println("Please include a valid algorithm parameter.");
 			System.exit(-1);
 		}
-		FileInputStream is = null;
+		FileInputStream isplain = null;
 		try{	
-			is = new FileInputStream(Data); //to be used for plaintext hashing
+			isplain = new FileInputStream(Data); //to be used for plaintext hashing
 		} catch(FileNotFoundException e){
 			System.out.println("Please include a valid file.");
 			System.exit(-1);
 		}
-		CipherInputStream cis = new CipherInputStream(is, aesCBC); //encrypt data from file
+		FileInputStream isencr = null;
+		try{
+			isencr = new FileInputStream(Data);//to be used for ciphertext
+		} catch(FileNotFoundException e){
+			System.out.println("Please include a valid file.");
+			System.exit(-1);
+		}
+		CipherInputStream cis = new CipherInputStream(isencr, aesCBC); //encrypt data from file
 		byte[] dataArrayAES = new byte[(int) Data.length()]; //the encrypted version of the file
-		System.out.println(Arrays.toString(dataArrayAES));
-		cis.read(dataArrayAES, 0, dataArrayAES.length);
-		System.out.println(Arrays.toString(dataArrayAES));
 		BufferedInputStream bis = new BufferedInputStream(cis); //buffered for use in socket transmission
 		//Hash plaintext with SHA-256 & encrypt hash with RSA (private key)
 		Signature SHA256 = null;
@@ -148,7 +152,7 @@ public class client1{
 			System.exit(-1);
 		}
 		byte[] dataArrayPlain = new byte[(int) Data.length()]; //array for plaintext to be written to
-		is.read(dataArrayPlain, 0, dataArrayPlain.length); //read in plaintext
+		isplain.read(dataArrayPlain, 0, dataArrayPlain.length); //read in plaintext
 		SHA256.update(dataArrayPlain); //update the signature with the plaintext
 		byte[] dataArraySign = SHA256.sign(); //sign the plaintext
 		//Encrypt password with client2 RSA key
@@ -181,18 +185,12 @@ public class client1{
 		try{
 			Socket socket = new Socket(serverIP, serverPort);//connect to the server
 			BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
-			//System.out.println(Arrays.toString(dataArraySign));
-			out.write(dataArraySign, 0, dataArraySign.length);//write signature to server
-			System.out.println(dataArraySign.length);
 			out.write(passEncr, 0, passEncr.length);//write encrypted password to server
-			//System.out.println(Arrays.toString(passEncr));
-			System.out.println(passEncr.length);
+			out.write(dataArraySign, 0, dataArraySign.length);//write signature to server
 			int count = 0;
 			while((count = bis.read(dataArrayAES, 0, dataArrayAES.length)) > 0){//read in buffered ciphertext		
-				System.out.println(count);
 				out.write(dataArrayAES, 0, count); //write ciphertext to buffer
 			}
-				System.out.println(dataArrayAES.length);
 			out.flush();
 			out.close(); //close buffer
 			socket.close(); //disconnect from server after sending password, file, and signature
@@ -204,6 +202,7 @@ public class client1{
 		}
 		bis.close(); //close the buffer
 		cis.close(); //close the cipher stream
-		is.close(); //close the file stream
+		isencr.close(); //close the encrypting file stream
+		isplain.close(); //close the plaintext file stream
 	}
 }
