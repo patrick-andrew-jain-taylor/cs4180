@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 public class server{
 	private static void argLength(String[] args){//checks for insufficient input size
@@ -42,11 +43,23 @@ public class server{
 		String mode = modeTest(args[2]);
 		//Establish a socket
 		ServerSocket Socket1 = new ServerSocket(client1Port); //establish socket for client1
-		ServerSocket Socket2 = new ServerSocket(client2Port); //establish socket for client2
+		System.out.println(1);
 		Socket client1Socket = Socket1.accept(); //accept client1 connection
-		BufferedReader in = new BufferedReader(new InputStreamReader(client1Socket.getInputStream())); //determine client1's socket's input stream (receiving information from client1)
+		System.out.println(2);
+		BufferedInputStream in = new BufferedInputStream(client1Socket.getInputStream()); //determine client1's socket's input stream (receiving information from client1)
+		
+		byte[] signature = new byte[256]; //signature array
+		in.read(signature, 0, signature.length);
+		//System.out.println(Arrays.toString(signature));
+		byte[] password = new byte[256]; //password array
+		in.read(password, 0, password.length);
+		//System.out.println(Arrays.toString(password));
+		byte[] file = new byte[1024]; // encrypted file array
+		in.read(file, 0, file.length);
+		System.out.println(Arrays.toString(file));
+		ServerSocket Socket2 = new ServerSocket(client2Port); //establish socket for client2
 		Socket client2Socket = Socket2.accept();
-		BufferedWriter out = new BufferedWriter(new OutputStreamWriter(client2Socket.getOutputStream())); //determine client2's socket's output stream (sending information to client2
+		BufferedOutputStream out = new BufferedOutputStream(client2Socket.getOutputStream()); //determine client2's socket's output stream (sending information to client2
 		//Pass password from client 1 to client 2
 		//If trusted mode
 		//	send file unmodified and signature received from client 1 to 2

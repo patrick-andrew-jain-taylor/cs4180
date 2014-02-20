@@ -5,6 +5,7 @@ import javax.crypto.spec.*;
 import java.net.*;
 import java.security.*;
 import java.security.spec.*;
+import java.util.*;
 	
 public class client1{
 	private static void argLength(String[] args){//checks for insufficient input size
@@ -110,6 +111,9 @@ public class client1{
 		}
 		CipherInputStream cis = new CipherInputStream(is, aesCBC); //encrypt data from file
 		byte[] dataArrayAES = new byte[(int) Data.length()]; //the encrypted version of the file
+		System.out.println(Arrays.toString(dataArrayAES));
+		cis.read(dataArrayAES, 0, dataArrayAES.length);
+		System.out.println(Arrays.toString(dataArrayAES));
 		BufferedInputStream bis = new BufferedInputStream(cis); //buffered for use in socket transmission
 		//Hash plaintext with SHA-256 & encrypt hash with RSA (private key)
 		Signature SHA256 = null;
@@ -177,32 +181,29 @@ public class client1{
 		try{
 			Socket socket = new Socket(serverIP, serverPort);//connect to the server
 			BufferedOutputStream out = new BufferedOutputStream(socket.getOutputStream());
-			int count;
-			while ((count = bis.read(dataArrayAES)) > 0){//read in buffered ciphertext
-				out.write(dataArrayAES, 0, count); //write encrypted file to output buffer
-				System.out.println(count);
-			}
-			out.flush(); //clear the buffer in preparation for signature
+			//System.out.println(Arrays.toString(dataArraySign));
 			out.write(dataArraySign, 0, dataArraySign.length);//write signature to server
 			System.out.println(dataArraySign.length);
-			out.flush();
 			out.write(passEncr, 0, passEncr.length);//write encrypted password to server
+			//System.out.println(Arrays.toString(passEncr));
 			System.out.println(passEncr.length);
+			int count = 0;
+			while((count = bis.read(dataArrayAES, 0, dataArrayAES.length)) > 0){//read in buffered ciphertext		
+				System.out.println(count);
+				out.write(dataArrayAES, 0, count); //write ciphertext to buffer
+			}
+				System.out.println(dataArrayAES.length);
 			out.flush();
-			out.close();
-			socket.close();
+			out.close(); //close buffer
+			socket.close(); //disconnect from server after sending password, file, and signature
 
 		} catch (IOException e){
 			System.out.println("Input: <server ip address> <port number client1> <client1 password> < file containing client1's RSA private exponent and modulus> <file containing client2's RSA public exponent and modulus> <file name>");
-			System.out.println("<server ip address>: Input a valid server address.");
+			System.out.println("<server ip address> <port number client1>: Make sure the server is running on the entered IP and port.");
 			System.exit(-1);
 		}
-		bis.close();
-		cis.close();
-		is.close();
-		//Encrypt password with client2 RSA key
-		//Send encrypted password to client 2 via server
-		//Disconnect from server after sending password, file, and signature
+		bis.close(); //close the buffer
+		cis.close(); //close the cipher stream
+		is.close(); //close the file stream
 	}
 }
-
