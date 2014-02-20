@@ -14,25 +14,17 @@ openssl commands:
 	openssl genrsa -out client2.pem 2048
 
 Once the keys have been generated, we can run additional openssl commands to
-decode the key into private and public components:
+decode the key into private and public components in the right format:
 
-	(1) openssl rsa -in client1.pem -noout -text -out 
-		client1privexpmod.pem
-	(3) openssl rsa -in client2.pem -noout -text -out 
-		client2privexpmod.pem
+	(1) openssl pkcs8 -topk8 -nocrypt -in client1.pem -inform PEM -out
+		client1.der -outform DER
+	(3) openssl pkcs8 -topk8 -nocrypt -in client2.pem -inform PEM -out
+		client2.der -outform DER
 
 Since the private key contains both private and public elements, we must run a
 special command to generate an output file that contains only the public key:
 
-	openssl rsa -in client1.pem -pubout -out client1pub.pem
-	openssl rsa -in client2.pem -pubout -out client2pub.pem
-
-Once the public key is generated, we can run additional openssl commands to
-decode the publuic key into public components:
-
-	(2) openssl rsa -in client1pub.pem -pubin -noout -text -out
-		client1pubexpmod.pem
-	(4) openssl rsa -in client2pub.pem -pubin -noout -text -out
-		client2pubexpmod.pem
+	(2) openssl rsa -in client1.pem -pubout -outform DER -out client1pub.der
+	(4) openssl rsa -in client2.pem -pubout -outform DER -out client2pub.der
 
 With these commands, we have thus generated all 4 necessary RSA files.
