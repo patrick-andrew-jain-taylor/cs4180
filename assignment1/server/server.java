@@ -88,6 +88,12 @@ public class server{
 			while((count = bis.read(file, 0, file.length)) > 0){
 				out.write(file, 0, count); //send sdata
 			}
-		}
+			is.close();
+			
+		
+		Socket1.close();
+		Socket2.close();
+		out.close();
+		in.close();
 	}
 }
