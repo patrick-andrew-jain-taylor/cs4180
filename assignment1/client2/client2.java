@@ -56,8 +56,9 @@ public class client2{
 		File RSA2 = fileTest(args[3], "<file containing client2's RSA private exponent and modulus>");
 		//Receive encrypted file and signature from server
 		Socket socket = new Socket(serverIP, serverPort);//connect to the server
+		//decrypt password
 		BufferedInputStream inpass = new BufferedInputStream(socket.getInputStream());
-		byte[] encodedKeyPriv = new byte[(int)RSA2.length()];//the encoded version of the public key will be read into this array
+		byte[] encodedKeyPriv = new byte[(int)RSA2.length()];//the encoded version of the private key will be read into this array
 		new FileInputStream(RSA2).read(encodedKeyPriv); //the key contained in this file is read to the array
 		PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedKey); //create a private key specification from the encoded key
 		KeyFactory kf2 = null;
@@ -86,8 +87,41 @@ public class client2{
 		byte[] passDecr = cisRSA.read(passDecr, 0, passDecr.length); //decrypt the password
 		cisRSA.close();
 		inpass.close();
-		byte[] signature = new byte[256]; //signature array
-		in.read(signature, 0, signature.length); //read in from input
+		//prepare signature for verification
+		BufferedInputStream insig = new BufferedInputStream(socket.getInputStream());
+		byte[] signEncr = new byte[256]; //signature array
+		insig.read(signEncr, 0, signEncr.length); //read in from socket
+		insig.close(); //close the signature buffer
+				Signature sig = null;
+		try{
+			SHA256 = Signature.getInstance("SHA256withRSA"); //instantiate SHA-256 with RSA
+		} catch(NoSuchAlgorithmException e){
+			System.out.println("Please include a valid algorithm.");
+			System.exit(-1);
+		}
+		byte[] encodedKeyPub = new byte[(int)RSA1.length()];//the encoded version of the public key will be read into this array
+		new FileInputStream(RSA1).read(encodedKeyPub); //the key contained in this file is read to the array
+		X509EncodedKeySpec publicKeySpec =  new X509EncodedKeySpec(encodedKeyPub); //create a public key specification from the encoded key
+		KeyFactory kf = null;
+		PublicKey pk = null;
+		try{
+			kf = KeyFactory.getInstance("RSA"); //instantiate RSA for public key
+			pk = kf.generatePublic(publicKeySpec); //generate the public key
+			SHA256.initVerify(pk);
+		} catch(NoSuchAlgorithmException e){
+			System.out.println("Please include a valid algorithm.");
+			System.exit(-1);
+		} catch(InvalidKeySpecException e){
+			System.out.println("Please include a valid key specification.");
+			System.exit(-1);
+		} catch(InvalidKeyException e){
+			System.out.println("Please include a valid key.");
+			System.exit(-1);
+		} catch(NoSuchPaddingException e){
+			System.out.println("Please include a valid padding.");
+			System.exit(-1);
+		}
+		//decrypt file
 		byte[] file = new byte[1048576]; // encrypted file array
 		Cipher aesCBC = null;
 		try{
@@ -109,13 +143,29 @@ public class client2{
 			System.out.println("Please include a valid algorithm parameter.");
 			System.exit(-1);
 		}
+		//Decrypt file and Verify Signature
 		BufferedInputStream infile = new BufferedInputStream(socket.getInputStream());
 		CipherInputStream cis = new CipherInputStream(infile, aesCBC); //decrypt data from file
-		while((count = cis.read(file, 0, file.length)) > 0);
-		//Decrypt file and Verify Signature
-		//Write result to stdout
-		//Write unencrypted file received from server to disk in same directory as client 2 executable
-		//Name file "data" (no extension)
+		int count = 0;
+		while((count = cis.read(file, 0, file.length)) > 0){
+			SHA256.update(file, 0, count);
+		}
 		//Disconnect from server after receiving password, file, and signature
+		socket.close();
+		boolean verifies = SHA256.verify(signEncr);
+		if (!verifies){
+			//Write result to stdout
+			System.out.println("Verification Failed");
+			System.exit(-1);
+		}
+		else{
+			//Write result to stdout
+			System.out.println("Verification Passed");
+			//Name file "data" (no extension)
+			FileOutputStream fos = new FileOutputStream("data");
+			//Write unencrypted file received from server to disk in same directory as client 2 executable
+			fos.write(file);
+			fos.close(); //close buffer
+		}
 	}
 }
