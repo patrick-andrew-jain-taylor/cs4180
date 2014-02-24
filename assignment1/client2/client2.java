@@ -41,7 +41,7 @@ public class client2{
 		}
 		return file;
 	}
-	public static void main(String[] args){
+	public static void main(String[] args) throws IOException{
 	/*	Input: 	<server ip address> <port number client2> 
 	 *		<file containing client1's RSA private exponent and modulus>
 	 *		<file containing client2's RSA public exponent and modulus> 
@@ -87,9 +87,9 @@ public class client2{
 			System.out.println("Please include a valid padding.");
 			System.exit(-1);
 		}
-		CipherInputStream cisRSA = new CipherInputStream(new FileInputStream(inpass), RSA);
+		CipherInputStream cisRSA = new CipherInputStream(inpass, RSA);
 		byte[] passDecr = new byte[256]; //password array
-		passDecr = cisRSA.read(passDecr, 0, passDecr.length); //decrypt the password
+		cisRSA.read(passDecr, 0, passDecr.length); //decrypt the password
 		cisRSA.close();
 		inpass.close();
 		//prepare signature for verification
@@ -122,10 +122,7 @@ public class client2{
 		} catch(InvalidKeyException e){
 			System.out.println("Please include a valid key.");
 			System.exit(-1);
-		} catch(NoSuchPaddingException e){
-			System.out.println("Please include a valid padding.");
-			System.exit(-1);
-		}
+		} 
 		//decrypt file
 		byte[] file = new byte[1048576]; // encrypted file array
 		Cipher aesCBC = null;
@@ -138,9 +135,6 @@ public class client2{
 		} catch(NoSuchPaddingException e){
 			System.out.println("Please include a valid padding.");
 			System.exit(-1);
-		} catch(UnsupportedEncodingException e){
-			System.out.println("Please include a valid encoding.");
-			System.exit(-1);
 		} catch(InvalidKeyException e){
 			System.out.println("Please insert a valid key.");
 			System.exit(-1);
@@ -152,25 +146,31 @@ public class client2{
 		BufferedInputStream infile = new BufferedInputStream(socket.getInputStream());
 		CipherInputStream cis = new CipherInputStream(infile, aesCBC); //decrypt data from file
 		int count = 0;
-		while((count = cis.read(file, 0, file.length)) > 0){
-			SHA256.update(file, 0, count);
-		}
-		//Disconnect from server after receiving password, file, and signature
-		socket.close();
-		boolean verifies = SHA256.verify(signEncr);
-		if (!verifies){
-			//Write result to stdout
+		try{
+			while((count = cis.read(file, 0, file.length)) > 0){
+				SHA256.update(file, 0, count);
+			}
+			//Disconnect from server after receiving password, file, and signature
+			socket.close();
+			boolean verifies = SHA256.verify(signEncr);
+			if (!verifies){
+				//Write result to stdout
+				System.out.println("Verification Failed");
+				System.exit(-1);
+			}
+			else{
+				//Write result to stdout
+				System.out.println("Verification Passed");
+				//Name file "data" (no extension)
+				FileOutputStream fos = new FileOutputStream("data");
+				//Write unencrypted file received from server to disk in same directory as client 2 executable
+				fos.write(file);
+				fos.close(); //close buffer
+			}
+
+		} catch(SignatureException e){
 			System.out.println("Verification Failed");
 			System.exit(-1);
-		}
-		else{
-			//Write result to stdout
-			System.out.println("Verification Passed");
-			//Name file "data" (no extension)
-			FileOutputStream fos = new FileOutputStream("data");
-			//Write unencrypted file received from server to disk in same directory as client 2 executable
-			fos.write(file);
-			fos.close(); //close buffer
 		}
 	}
 }
