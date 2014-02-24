@@ -1,4 +1,9 @@
 import java.io.*;
+import java.net.*;
+import java.security.*;
+import java.security.spec.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
 
 public class client2{
 	private static void argLength(String[] args){//checks for insufficient input size
@@ -45,7 +50,7 @@ public class client2{
 		//Check for invalid/garbage/missing input
 		argLength(args);//checks for insufficient input size
 		//<server ip address>
-		String serverIP = serverIPTest(args[0]);//checks for a valid server IP
+		String serverIP = serverIpTest(args[0]);//checks for a valid server IP
 		//<port number client2>
 		int serverPort = portTest(args[1]);//checks for a valid integer for client 2 port number
 		//< file containing client1's RSA public exponent and modulus>
@@ -60,7 +65,7 @@ public class client2{
 		BufferedInputStream inpass = new BufferedInputStream(socket.getInputStream());
 		byte[] encodedKeyPriv = new byte[(int)RSA2.length()];//the encoded version of the private key will be read into this array
 		new FileInputStream(RSA2).read(encodedKeyPriv); //the key contained in this file is read to the array
-		PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedKey); //create a private key specification from the encoded key
+		PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedKeyPriv); //create a private key specification from the encoded key
 		KeyFactory kf2 = null;
 		PrivateKey pk2 = null;
 		Cipher RSA = null;
@@ -84,7 +89,7 @@ public class client2{
 		}
 		CipherInputStream cisRSA = new CipherInputStream(new FileInputStream(inpass), RSA);
 		byte[] passDecr = new byte[256]; //password array
-		byte[] passDecr = cisRSA.read(passDecr, 0, passDecr.length); //decrypt the password
+		passDecr = cisRSA.read(passDecr, 0, passDecr.length); //decrypt the password
 		cisRSA.close();
 		inpass.close();
 		//prepare signature for verification
@@ -92,7 +97,7 @@ public class client2{
 		byte[] signEncr = new byte[256]; //signature array
 		insig.read(signEncr, 0, signEncr.length); //read in from socket
 		insig.close(); //close the signature buffer
-				Signature sig = null;
+		Signature SHA256 = null;
 		try{
 			SHA256 = Signature.getInstance("SHA256withRSA"); //instantiate SHA-256 with RSA
 		} catch(NoSuchAlgorithmException e){
