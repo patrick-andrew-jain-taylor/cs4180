@@ -131,12 +131,11 @@ public class client2{
 			System.exit(-1);
 		} 
 		//decrypt file
-		byte[] file = new byte[1048576]; // encrypted file array
 		Cipher aesCBC = null;
-		byte[] IV = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+		byte[] iv = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 		try{
-			aesCBC = Cipher.getInstance("AES/CBC/NoPadding"); //instantiate AES with CBC
-			aesCBC.init(Cipher.DECRYPT_MODE, new SecretKeySpec(passDecr, "AES"), new IvParameterSpec(IV)); //initialize
+			aesCBC = Cipher.getInstance("aes/cbc/nopadding"); //instantiate aes with cbc
+			aesCBC.init(Cipher.DECRYPT_MODE, new SecretKeySpec(passDecr, "aes"), new IvParameterSpec(iv)); //initialize
 		} catch(NoSuchAlgorithmException e){
 			System.out.println("Please include a valid cipher.");
 			System.exit(-1);
@@ -152,15 +151,19 @@ public class client2{
 		}
 		//Decrypt file and Verify Signature
 		CipherInputStream cis = new CipherInputStream(in, aesCBC); //decrypt data from file
+		FileOutputStream fos = new FileOutputStream("data"); //name file "data" (no extension)
+		byte[] buffer = new byte[512]; //encrypted file buffer
 		int count = 0;
 		try{
-			while((count = cis.read(file, 0, file.length)) > 0){
-				System.out.println("Test");
-				SHA256.update(file, 0, count);
+			while((count = cis.read(buffer, 0, buffer.length)) > 0){
+				//Write unencrypted file received from server to disk in same directory as client 2 executable
+				fos.write(buffer);
+				SHA256.update(buffer, 0, count);
 			}
 			//Disconnect from server after receiving password, file, and signature
-			cis.close();
-			in.close(); //close password buffer
+			fos.close();
+			cis.close(); //close encrypted buffer
+			in.close(); //close socket buffer
 			socket.close(); //close socket
 			boolean verifies = SHA256.verify(signEncr);
 			if (!verifies){
@@ -171,11 +174,6 @@ public class client2{
 			else{
 				//Write result to stdout
 				System.out.println("Verification Passed");
-				//Name file "data" (no extension)
-				FileOutputStream fos = new FileOutputStream("data");
-				//Write unencrypted file received from server to disk in same directory as client 2 executable
-				fos.write(file);
-				fos.close(); //close buffer
 			}
 
 		} catch(SignatureException e){
