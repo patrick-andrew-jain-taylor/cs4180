@@ -89,8 +89,7 @@ public class server{
 				out.write(file, 0, count); //send sdata
 			}
 			is.close();
-			
-		
+		}
 		Socket1.close();
 		Socket2.close();
 		out.close();
