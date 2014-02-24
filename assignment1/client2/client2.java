@@ -4,6 +4,7 @@ import java.security.*;
 import java.security.spec.*;
 import javax.crypto.*;
 import javax.crypto.spec.*;
+import java.util.*;
 
 public class client2{
 	private static void argLength(String[] args){//checks for insufficient input size
@@ -62,7 +63,9 @@ public class client2{
 		//Receive encrypted file and signature from server
 		Socket socket = new Socket(serverIP, serverPort);//connect to the server
 		//decrypt password
-		BufferedInputStream inpass = new BufferedInputStream(socket.getInputStream());
+		BufferedInputStream in = new BufferedInputStream(socket.getInputStream());
+		byte[] passEncr = new byte[256]; //encrypted password
+		in.read(passEncr, 0, passEncr.length); //read in encrypted password
 		byte[] encodedKeyPriv = new byte[(int)RSA2.length()];//the encoded version of the private key will be read into this array
 		new FileInputStream(RSA2).read(encodedKeyPriv); //the key contained in this file is read to the array
 		PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(encodedKeyPriv); //create a private key specification from the encoded key
@@ -81,22 +84,26 @@ public class client2{
 			System.out.println("Please include a valid key specification.");
 			System.exit(-1);
 		} catch(InvalidKeyException e){
-			System.out.println("Please include a valid key.");
+			System.out.println("Please include a valid key1.");
 			System.exit(-1);
 		} catch(NoSuchPaddingException e){
 			System.out.println("Please include a valid padding.");
 			System.exit(-1);
 		}
-		CipherInputStream cisRSA = new CipherInputStream(inpass, RSA);
-		byte[] passDecr = new byte[256]; //password array
-		cisRSA.read(passDecr, 0, passDecr.length); //decrypt the password
-		cisRSA.close();
-		inpass.close();
+		byte[] passDecr = null;
+		try{
+			passDecr = RSA.doFinal(passEncr); //decrypt the password
+		} catch(IllegalBlockSizeException e){
+			System.out.println("Please include a proper block size.");
+			System.exit(-1);
+		} catch(BadPaddingException e){
+			System.out.println("Ensure proper padding.");
+			System.exit(-1);
+		}
 		//prepare signature for verification
-		BufferedInputStream insig = new BufferedInputStream(socket.getInputStream());
+		//BufferedInputStream insig = new BufferedInputStream(socket.getInputStream());
 		byte[] signEncr = new byte[256]; //signature array
-		insig.read(signEncr, 0, signEncr.length); //read in from socket
-		insig.close(); //close the signature buffer
+		in.read(signEncr, 0, signEncr.length); //read in from socket
 		Signature SHA256 = null;
 		try{
 			SHA256 = Signature.getInstance("SHA256withRSA"); //instantiate SHA-256 with RSA
@@ -120,15 +127,16 @@ public class client2{
 			System.out.println("Please include a valid key specification.");
 			System.exit(-1);
 		} catch(InvalidKeyException e){
-			System.out.println("Please include a valid key.");
+			System.out.println("Please include a valid key2.");
 			System.exit(-1);
 		} 
 		//decrypt file
 		byte[] file = new byte[1048576]; // encrypted file array
 		Cipher aesCBC = null;
+		byte[] IV = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 		try{
 			aesCBC = Cipher.getInstance("AES/CBC/NoPadding"); //instantiate AES with CBC
-			aesCBC.init(Cipher.DECRYPT_MODE, new SecretKeySpec(passDecr, "AES"), new IvParameterSpec(new byte[16])); //initialize
+			aesCBC.init(Cipher.DECRYPT_MODE, new SecretKeySpec(passDecr, "AES"), new IvParameterSpec(IV)); //initialize
 		} catch(NoSuchAlgorithmException e){
 			System.out.println("Please include a valid cipher.");
 			System.exit(-1);
@@ -136,22 +144,24 @@ public class client2{
 			System.out.println("Please include a valid padding.");
 			System.exit(-1);
 		} catch(InvalidKeyException e){
-			System.out.println("Please insert a valid key.");
+			System.out.println("Please insert a valid key3.");
 			System.exit(-1);
 		} catch(InvalidAlgorithmParameterException e){
 			System.out.println("Please include a valid algorithm parameter.");
 			System.exit(-1);
 		}
 		//Decrypt file and Verify Signature
-		BufferedInputStream infile = new BufferedInputStream(socket.getInputStream());
-		CipherInputStream cis = new CipherInputStream(infile, aesCBC); //decrypt data from file
+		CipherInputStream cis = new CipherInputStream(in, aesCBC); //decrypt data from file
 		int count = 0;
 		try{
 			while((count = cis.read(file, 0, file.length)) > 0){
+				System.out.println("Test");
 				SHA256.update(file, 0, count);
 			}
 			//Disconnect from server after receiving password, file, and signature
-			socket.close();
+			cis.close();
+			in.close(); //close password buffer
+			socket.close(); //close socket
 			boolean verifies = SHA256.verify(signEncr);
 			if (!verifies){
 				//Write result to stdout

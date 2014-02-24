@@ -65,6 +65,7 @@ public class server{
 		//pass signature unmodified
 		byte[] signature = new byte[256]; //signature array
 		in.read(signature, 0, signature.length); //read in from input
+		System.out.println(Arrays.toString(signature));
 		out.write(signature, 0, signature.length); //write out to output
 		//test for trust or untrust
 		byte[] file = new byte[1048576]; // encrypted file array

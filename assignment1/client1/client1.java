@@ -83,9 +83,10 @@ public class client1{
 		File Data = fileTest(args[5], "<file name>");
 		//Encrypt file with AES in CBC
 		Cipher aesCBC = null;
+		byte[] IV = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 		try{
 			aesCBC = Cipher.getInstance("AES/CBC/NoPadding"); //instantiate AES with CBC
-			aesCBC.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(password.getBytes("UTF-8"), "AES"), new IvParameterSpec(new byte[16])); //initialize
+			aesCBC.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(password.getBytes("UTF-8"), "AES"), new IvParameterSpec(IV)); //initialize
 		} catch(NoSuchAlgorithmException e){
 			System.out.println("Please include a valid cipher.");
 			System.exit(-1);
