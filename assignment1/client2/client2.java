@@ -134,7 +134,7 @@ public class client2{
 		Cipher aesCBC = null;
 		byte[] iv = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 		try{
-			aesCBC = Cipher.getInstance("aes/cbc/nopadding"); //instantiate aes with cbc
+			aesCBC = Cipher.getInstance("AES/CBC/PKCS5Padding"); //instantiate aes with cbc
 			aesCBC.init(Cipher.DECRYPT_MODE, new SecretKeySpec(passDecr, "aes"), new IvParameterSpec(iv)); //initialize
 		} catch(NoSuchAlgorithmException e){
 			System.out.println("Please include a valid cipher.");
@@ -157,8 +157,9 @@ public class client2{
 		try{
 			while((count = cis.read(buffer, 0, buffer.length)) > 0){
 				//Write unencrypted file received from server to disk in same directory as client 2 executable
-				fos.write(buffer);
+				fos.write(buffer, 0, count);
 				SHA256.update(buffer, 0, count);
+				buffer = new byte[512];
 			}
 			//Disconnect from server after receiving password, file, and signature
 			fos.close();

@@ -85,7 +85,7 @@ public class client1{
 		Cipher aesCBC = null;
 		byte[] IV = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 		try{
-			aesCBC = Cipher.getInstance("AES/CBC/NoPadding"); //instantiate AES with CBC
+			aesCBC = Cipher.getInstance("AES/CBC/PKCS5Padding"); //instantiate AES with CBC
 			aesCBC.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(password.getBytes("UTF-8"), "AES"), new IvParameterSpec(IV)); //initialize
 		} catch(NoSuchAlgorithmException e){
 			System.out.println("Please include a valid cipher.");
