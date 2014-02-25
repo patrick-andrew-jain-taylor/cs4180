@@ -28,3 +28,13 @@ special command to generate an output file that contains only the public key:
 	(4) openssl rsa -in client2.pem -pubout -outform DER -out client2pub.der
 
 With these commands, we have thus generated all 4 necessary RSA files.
+
+(2) how to run your programs.
+
+Once compiled, the java files should be instantiated in the following order:
+
+(1) java server <port1> <port2>
+(2) java client1 <serverIP> <port1> <password>  client1/client1.der client2/client2pub.der <file>
+(3) java client2 <serverIP> <port2> client1/client1pub.der client2/client2.der
+
+In this order, the program should run without error.
