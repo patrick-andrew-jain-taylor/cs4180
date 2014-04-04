@@ -62,7 +62,7 @@ Server Keystore:
 		-keystore server/server.keystore 
 		-storetype jks
 
-2) Import server into client and client into server
+2) Import server into client truststore and client into server truststore
 
 Now that the keystores are generated, each respective keystore requires an
 entry from the other for mutual authentication. This requires a certificate
@@ -89,17 +89,17 @@ Export Server Cert:
 		-storepass server
 
 Once these certificates are exported, they will be imported into the opposite
-keystores. Using -importcert, we will use import the -alias, -file, and
+truststores. Using -importcert, we will use import the -alias, -file, and
 -keypass of the client, but the -keystore and -storepass of the server. Vice
 versa applies for the server.
 
 Import Client Cert:
-	keytool -importcert
+	keytool -import
 		-alias client
 		-file client/client.pfx
 		-keypass client
 		-storetype jks
-		-keystore server/server.keystore
+		-keystore server/servertrust.keystore
 		-storepass server
 
 Import Server Cert:
@@ -108,7 +108,7 @@ Import Server Cert:
 		-file server/server.pfx
 		-keypass server
 		-storetype jks
-		-keystore client/client.keystore
+		-keystore client/clienttrust.keystore
 		-storepass client
 
 With the certs generated and imported into the proper keystores, we are ready
