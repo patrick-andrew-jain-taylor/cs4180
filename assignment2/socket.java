@@ -121,7 +121,6 @@ public class socket{
 			managerError.illegalState();
 		}
 		return sslContext;
-
 	}
 /* the storeError class contains all functions used to generate unique store error messages for the socket
  * class.
