@@ -74,12 +74,15 @@ public class client{
 			//take input from the terminal
 			input = br.readLine();
 			String[] inputSplit = input.split("[ ]+"); //splits string into array of space-delimited strings
-			if (inputSplit[0].equals("exit")) break; //time to close the socket
+			if (inputSplit[0].equals("exit")){ //time to close the socket
+				outBuf.write(input.getBytes());
+				break;
+			}
 			//if beyond this point, function is either GET or PUT and string needs to be parsed
 			int getPut = getPut(inputSplit);
 			if(getPut < 0) acceptIn(); //invalid input
 			else {
-				out.write(input.getBytes()); //send command to server
+				outBuf.write(input.getBytes()); //send command to server
 				if (getPut > 0) get(inBuf, input, inputSplit[1]); //get
 				else put(outBuf, input, inputSplit[1]); //put
 			}
@@ -89,18 +92,18 @@ public class client{
 		out.close();
 	}
 	public static void main(String[] args){
-		String serverIP = "128.59.15.40"; //server IP
+		String serverIP = "128.59.15.39"; //server IP
 		int serverPort = 9955; //server Port
 		//create socket to server
 		try{
 			//create SSLcontext
 			String keyStoreType = "JKS";
-			String keyStorePath = "client/client.keystore";
+			String keyStorePath = "client.keystore";
 			String keyStorePassword = "client";
 			KeyStore keyStore = socket.keyStoreTLS(keyStoreType, keyStorePath, keyStorePassword);
 			KeyManagerFactory keyManagerFactory = socket.keyManagerTLS(keyStore, keyStorePassword);
 			//truststore
-			String trustStorePath = "client/clienttrust.keystore";
+			String trustStorePath = "clienttrust.keystore";
 			String trustStorePassword = keyStorePassword;
 			KeyStore trustStore = socket.keyStoreTLS(keyStoreType, trustStorePath, trustStorePassword);
 			TrustManagerFactory trustManagerFactory = socket.trustManagerTLS(trustStore);
@@ -110,6 +113,7 @@ public class client{
 			SSLSocketFactory socketFactory = sslContext.getSocketFactory();
 			SSLSocket sslSocket = (SSLSocket) socketFactory.createSocket(serverIP, serverPort);
 			sslSocket.setEnabledProtocols(new String[]{"TLSv1"});
+			sslSocket.startHandshake();
 			//take input from user
 			userInput(sslSocket);
 			sslSocket.close(); //close the socket

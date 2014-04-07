@@ -62,12 +62,12 @@ public class server{
 		try{
 			//create SSLcontext
 			String keyStoreType = "JKS";
-			String keyStorePath = "server/server.keystore";
+			String keyStorePath = "server.keystore";
 			String keyStorePassword = "server";
 			KeyStore keyStore = socket.keyStoreTLS(keyStoreType, keyStorePath, keyStorePassword);
 			KeyManagerFactory keyManagerFactory = socket.keyManagerTLS(keyStore, keyStorePassword);
 			//truststore
-			String trustStorePath = "server/servertrust.keystore";
+			String trustStorePath = "servertrust.keystore";
 			String trustStorePassword = keyStorePassword;
 			KeyStore trustStore = socket.keyStoreTLS(keyStoreType, trustStorePath, trustStorePassword);
 			TrustManagerFactory trustManagerFactory = socket.trustManagerTLS(trustStore);
@@ -85,11 +85,11 @@ public class server{
 			BufferedOutputStream outBuf = new BufferedOutputStream(sslSocket.getOutputStream());
 			BufferedInputStream inBuf = new BufferedInputStream(sslSocket.getInputStream());
 			while(true){//loop indefinitely
-				byte[] command = new byte[512];
-				inBuf.read(command, 0, command.length);
+				byte[] command = new byte[8];
+				int count = inBuf.read(command, 0, command.length);
+				if (count == -1) break; //time to close the socket -- exit sent
 				String commandParse = new String(command, "UTF-8");
 				String[] commandSplit = commandParse.split("[ ]+");
-				if (commandSplit[0].equals("exit")) break; //time to close the socket
 				int getPut = getPut(commandSplit);
 				if (getPut < 0);
 				else{
