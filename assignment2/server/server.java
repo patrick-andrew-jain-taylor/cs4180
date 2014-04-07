@@ -20,6 +20,7 @@ public class server{
 	public static int get(BufferedOutputStream out, String command, String file){
 		try{
 			FileInputStream get = new FileInputStream(file);
+			System.out.println("test");
 			BufferedInputStream getBuf = new BufferedInputStream(get);
 			byte[] data = new byte[512];
 			int count = 0;
@@ -91,10 +92,11 @@ public class server{
 				byte[] command = new byte[512];
 				int count = in.read(command, 0, command.length);
 				if (count == -1) break; //time to close the socket -- exit sent
-				String commandParse = new String(command, "UTF-8");
+				String commandParse = new String(command, 0, count);
 				System.out.println(commandParse);
 				String[] commandSplit = commandParse.split("[ ]+");
 				int getPut = getPut(commandSplit);
+				System.out.println(commandSplit[1].length());
 				if (getPut < 0);
 				else{
 					if (getPut > 0) {

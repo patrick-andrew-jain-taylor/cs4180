@@ -26,6 +26,7 @@ public class client{
 			int count = 0;
 			try{
 				while((count = in.read(data, 0, data.length)) > 0){ //read in buffered file from server
+					System.out.println(count);
 					String dataParse = new String(data, 0, count);
 					String fail = "File not found";
 					if (dataParse.equals(fail)) {
@@ -33,6 +34,7 @@ public class client{
 						break;
 					}
 					getBuf.write(data, 0, count);
+					if (count != data.length) break;
 				}
 				getBuf.flush();
 				getBuf.close();
