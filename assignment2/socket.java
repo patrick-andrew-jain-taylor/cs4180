@@ -1,4 +1,8 @@
 import java.security.KeyStore;
+import java.security.*;
+import java.io.*;
+import java.security.cert.*;
+import java.io.FileInputStream;
 import javax.net.ssl.*;
 import javax.net.ssl.SSLContext;
 
@@ -12,9 +16,10 @@ import javax.net.ssl.SSLContext;
 public class socket{
 	//KeyStore: return keyStore to be used for sending/receiving certs (keyStore/trustStore)
 	public static KeyStore keyStoreTLS(String keyStoreType, String keyStorePath, String password){
+		KeyStore keyStore = null;
 		try{
 			FileInputStream inputStream = new FileInputStream(keyStorePath);
-			KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+			keyStore = KeyStore.getInstance(keyStoreType);
 			keyStore.load(inputStream, password.toCharArray());
 			inputStream.close();
 			return keyStore;
@@ -29,12 +34,13 @@ public class socket{
 		} catch (CertificateException e){
 			storeError.invalidCertificate(keyStorePath);
 		}
-
+		return keyStore;
 	}
 	//KeyManagerFactory: used to manage keyStore (sending certs)
 	public static KeyManagerFactory keyManagerTLS(KeyStore keyStore, String password){
+		KeyManagerFactory keyManagerFactory = null;
 		try{
-			KeyManagerFactory keyManagerFactory = 
+			keyManagerFactory = 
 				KeyManagerFactory.getInstance("SunX509", "SunJSSE");
 			keyManagerFactory.init(keyStore, password.toCharArray());
 			return keyManagerFactory;
@@ -48,15 +54,17 @@ public class socket{
 			managerError.nullPointer();
 		} catch (KeyStoreException e){
 			storeError.invalidKeyStore();
-		} catch (UnrecoverableKeyexception e){
-			storeError.invalidKeyStoreData(keyStorePath);
+		} catch (UnrecoverableKeyException e){
+			storeError.invalidKeyStore();
 		} 
+		return keyManagerFactory;
 	}
 
 	//TrustManagerFactory: used to manage trustStore (receiving certs)
 	public static TrustManagerFactory trustManagerTLS(KeyStore trustStore){
+		TrustManagerFactory trustManagerFactory = null;
 		try{
-			TrustManagerFactory trustManagerFactory = 
+			trustManagerFactory = 
 				TrustManagerFactory.getInstance("PKIX", "SunJSSE");
 			trustManagerFactory.init(trustStore);
 			return trustManagerFactory;
@@ -71,34 +79,14 @@ public class socket{
 		} catch (KeyStoreException e){
 			managerError.trustStoreFail();
 		}
+		return trustManagerFactory;
 	}
-	
-	//X509TrustManager: used to instantiate the trust manager
-	public static X509TrustManager X509TrustManagerTLS(TrustManagerFactory trustManagerFactory){
+	//SSLContext: used for socketing
+	public static SSLContext SSLContextTLS(KeyManagerFactory keyManagerFactory, TrustManagerFactory 
+			trustManagerFactory, String password){
+		SSLContext sslContext = null;
 		try{
-			X509TrustManager x509TrustManager = null;
-			for (TrustManager trustManager : trustManagerFactory.getTrustManagers()) {
-				if (trustManager instanceof X509TrustManager) {
-					x509TrustManager = (X509TrustManager) trustManager;
-					break;
-				}
-			}
-	       		if (x509TrustManager == null) {
-    				throw new NullPointerException();
-				System.exit(1);
-			}
-			return x509TrustManager;
-		} catch(IllegalStateException e){
-			managerError.illegalState();
-		}
-	}
-	//X509KeyManager: used to instantiate key manager
-	public static X509KeyManager X509KeyManagerTLS(KeyManagerFactory keyManagerFactory){
-		try{
-			KeyManagerFactory keyManagerFactory =
-  				KeyManagerFactory.getInstance("SunX509", "SunJSSE");
-			keyManagerFactory.init(keyStore, password.toCharArray());
-			
+			//x509keymanager
 			X509KeyManager x509KeyManager = null;
 			for (KeyManager keyManager : keyManagerFactory.getKeyManagers()) {
 				if (keyManager instanceof X509KeyManager) {
@@ -108,20 +96,20 @@ public class socket{
 			}
 			if (x509KeyManager == null) {
 				throw new NullPointerException();
-				System.exit(1);
 			}
-			return x509KeyManager;
-		} catch(IllegalStateException e){
-			managerError.illegalState();
-		}
-	}
-	
-	//SSLContext: used for socketing
-	public static SSLContext SSLContextTLS(KeyManagerFactory keyManager, TrustManagerFactory 
-			trustManager, X509KeyManager x509KeyManager, X509TrustManager x509TrustManager){
-		try{
-			SSLContext sslContext = SSLContext.getInstance("TLS");
-			sslContext.init(new KeyManager[]{keyManager}, new TrustManager[]{trustManager}, null);
+			//x509trustmanager
+			X509TrustManager x509TrustManager = null;
+			for (TrustManager trustManager : trustManagerFactory.getTrustManagers()) {
+				if (trustManager instanceof X509TrustManager) {
+					x509TrustManager = (X509TrustManager) trustManager;
+					break;
+				}
+			}
+	       		if (x509TrustManager == null) {
+    				throw new NullPointerException();
+			}
+			sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(new X509KeyManager[]{x509KeyManager}, new X509TrustManager[]{x509TrustManager}, null);
 			return sslContext;
 		} catch (NoSuchAlgorithmException e){
 			managerError.invalidAlgorithm();
@@ -129,7 +117,11 @@ public class socket{
 			managerError.invalidProtocol();
 		} catch (KeyManagementException e){
 			managerError.invalidManager();
+		} catch(IllegalStateException e){
+			managerError.illegalState();
 		}
+		return sslContext;
+
 	}
 /* the storeError class contains all functions used to generate unique store error messages for the socket
  * class.
@@ -213,16 +205,14 @@ public class socket{
 		String keyStorePassword = "client";
 		KeyStore keyStore = keyStoreTLS(keyStoreType, keyStorePath, keyStorePassword);
 		KeyManagerFactory keyManagerFactory = keyManagerTLS(keyStore, keyStorePassword);
-		X509KeyManager x509KeyManager = X509KeyManagerTLS(keyManagerFactory);
 		//truststore
 		String trustStorePath = "client/clienttrust.keystore";
 		String trustStorePassword = keyStorePassword;
 		KeyStore trustStore = keyStoreTLS(keyStoreType, trustStorePath, trustStorePassword);
 		TrustManagerFactory trustManagerFactory = trustManagerTLS(trustStore);
-		X509TrustManager x509TrustManager = X509TrustManagerTLS(trustManagerFactory);
 		//bring it all together
 		SSLContext sslContext =	
-			SSLContextTLS(keyManagerFactory, trustManagerFactory, x509KeyManager, x509TrustManager);
+			SSLContextTLS(keyManagerFactory, trustManagerFactory, keyStorePassword);
 	}
 	
 }
