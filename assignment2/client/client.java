@@ -4,6 +4,7 @@ import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import javax.net.ssl.*;
 import javax.net.ssl.SSLContext;
+import java.security.cert.Certificate;
 
 public class client{
 	//getPut: checks for valid GET/PUT command
@@ -24,8 +25,15 @@ public class client{
 			byte[] data = new byte[512];
 			int count = 0;
 			try{
-				while((count = in.read(data, 0, data.length)) > 0) //read in buffered file from server
+				while((count = in.read(data, 0, data.length)) > 0){ //read in buffered file from server
+					String dataParse = new String(data, 0, count);
+					String fail = "File not found";
+					if (dataParse.equals(fail)) {
+						System.out.println(fail);
+						break;
+					}
 					getBuf.write(data, 0, count);
+				}
 				getBuf.flush();
 				getBuf.close();
 				return 0;
@@ -39,13 +47,17 @@ public class client{
 	//put: Places file on server
 	public static int put(BufferedOutputStream out, String command, String file){
 		try{
+			out.write(command.getBytes()); //send command to server
+			out.flush();
 			FileInputStream put = new FileInputStream(file);
 			BufferedInputStream putBuf = new BufferedInputStream(put);
 			byte[] data = new byte[512];
 			int count = 0;
 			try{
-				while((count = putBuf.read(data, 0, data.length)) > 0) //read in buffered file from client
+				while((count = putBuf.read(data, 0, data.length)) > 0){ //read in buffered file from client
 					out.write(data, 0, count);
+				}
+				out.flush();
 				putBuf.close();
 				return 0;
 			} catch (IOException e){
@@ -53,6 +65,8 @@ public class client{
 			}
 		} catch (FileNotFoundException e){
 			return clientError.FileError();
+		}  catch (IOException e){
+			return clientError.WriteError();
 		}
 	}
 	//acceptIn: to be printed out for all invalid user input
@@ -82,8 +96,11 @@ public class client{
 			int getPut = getPut(inputSplit);
 			if(getPut < 0) acceptIn(); //invalid input
 			else {
-				outBuf.write(input.getBytes()); //send command to server
-				if (getPut > 0) get(inBuf, input, inputSplit[1]); //get
+				if (getPut > 0) {
+					outBuf.write(input.getBytes()); //send command to server
+					outBuf.flush();
+					get(inBuf, input, inputSplit[1]); //get
+				}
 				else put(outBuf, input, inputSplit[1]); //put
 			}
 		}

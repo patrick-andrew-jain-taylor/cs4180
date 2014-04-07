@@ -26,6 +26,7 @@ public class server{
 			try{
 				while((count = getBuf.read(data, 0, data.length)) > 0)
 					out.write(data, 0, count);
+				out.flush();
 				getBuf.close();
 				return 0;
 			} catch (IOException e){
@@ -36,7 +37,7 @@ public class server{
 		}
 	}
 	//put: Places file in server directory
-	public static int put(BufferedInputStream in, String command, String file){
+	public static int put(BufferedOutputStream out, BufferedInputStream in, String command, String file){
 		try{
 			FileOutputStream put = new FileOutputStream(file);
 			BufferedOutputStream putBuf = new BufferedOutputStream(put);
@@ -82,19 +83,36 @@ public class server{
 			serverSocket.setEnabledProtocols(new String[]{"TLSv1"});
 			SSLSocket sslSocket = (SSLSocket) serverSocket.accept();
 			//open a buffered stream on the socket
-			BufferedOutputStream outBuf = new BufferedOutputStream(sslSocket.getOutputStream());
-			BufferedInputStream inBuf = new BufferedInputStream(sslSocket.getInputStream());
+			OutputStream out = sslSocket.getOutputStream();
+			InputStream in = sslSocket.getInputStream();
+			BufferedOutputStream outBuf = new BufferedOutputStream(out);
+			BufferedInputStream inBuf = new BufferedInputStream(in);
 			while(true){//loop indefinitely
-				byte[] command = new byte[8];
-				int count = inBuf.read(command, 0, command.length);
+				byte[] command = new byte[512];
+				int count = in.read(command, 0, command.length);
 				if (count == -1) break; //time to close the socket -- exit sent
 				String commandParse = new String(command, "UTF-8");
+				System.out.println(commandParse);
 				String[] commandSplit = commandParse.split("[ ]+");
 				int getPut = getPut(commandSplit);
 				if (getPut < 0);
 				else{
-					if (getPut > 0) get (outBuf, commandParse, commandSplit[1]);
-					else put(inBuf, commandParse, commandSplit[1]);
+					if (getPut > 0) {
+						int result = get (outBuf, commandParse, commandSplit[1]);
+						if (result < 0) {
+							String fail = "File not found";
+							out.write(fail.getBytes());
+							out.flush();
+						}
+					}
+					else {
+						int result = put(outBuf, inBuf, commandParse, commandSplit[1]);
+						if (result < 0) {
+							String fail = "Unable to write to directory";
+							out.write(fail.getBytes());
+							out.flush();
+						}
+					}
 				}
 			}
 			inBuf.close(); //close input stream
