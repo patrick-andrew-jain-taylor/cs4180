@@ -113,3 +113,11 @@ Import Server Cert:
 
 With the certs generated and imported into the proper keystores, we are ready
 to begin socketing.
+
+KNOWN BUG: If server is closed, client will only properly close if ENTER is
+entered. This is due to the fact that BufferedReader attempts to keep reading
+from the terminal, even if the socket is closed. All the documentation I've
+read for SSLSocket does not include a parameter that can actively check for a
+closed connection; I'm stumped as to how to proceed.
+
+
