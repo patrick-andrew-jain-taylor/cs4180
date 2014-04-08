@@ -139,7 +139,7 @@ public class server{
 			return -1;
 		}
 				private static void argLength(String[] args){//checks for insufficient input size
-			if (args.length != 2){ 
+			if (args.length != 1){ 
 				System.out.println("Input: <port number>");
 				System.out.println("client requires 1 input parameters.");
 				System.exit(-1);
