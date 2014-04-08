@@ -120,4 +120,9 @@ from the terminal, even if the socket is closed. All the documentation I've
 read for SSLSocket does not include a parameter that can actively check for a
 closed connection; I'm stumped as to how to proceed.
 
-
+How to run (after make):
+Client is found in /client directory
+./client <server IP address> <port number>
+Server is found in /server directory
+./server <port number>
+RUN SERVER FIRST
